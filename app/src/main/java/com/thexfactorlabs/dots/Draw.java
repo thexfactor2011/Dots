@@ -2,6 +2,7 @@ package com.thexfactorlabs.dots;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -26,6 +27,7 @@ public class Draw extends View {
     boolean flag = false;
     int screenX;
     int screenY;
+    Context appContext;
 
     /* Main bitmap */
     //private Bitmap mBitmap = null;
@@ -39,14 +41,43 @@ public class Draw extends View {
         int centerY;
         int direction = 0; //0 left, 1 right, 2 up, 3 down
         int speed = 8;
+        Context mContext;
 
-        CircleArea(int centerX, int centerY, int radius) {
+        private Paint mCirclePaint;
+        Paint strokePaint;
+
+        CircleArea(int centerX, int centerY, int radius, Context context) {
             this.radius = radius;
             this.centerX = centerX;
             this.centerY = centerY;
 
+            mContext = context;
+
             Random r = new Random();
             direction = r.nextInt(4);
+
+            setupPaint();
+        }
+
+        private void setupPaint(){
+            mCirclePaint = new Paint();
+            mCirclePaint.setColor(getMatColor("500"));
+            mCirclePaint.setStrokeWidth(40);
+            mCirclePaint.setStyle(Paint.Style.FILL);
+            mCirclePaint.setMaskFilter(new BlurMaskFilter(150, BlurMaskFilter.Blur.INNER));
+
+            strokePaint = new Paint();
+            strokePaint.setColor(getMatColor("500"));
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setStrokeWidth(3);
+        }
+
+        public Paint getCirclePaint(){
+            return  mCirclePaint;
+        }
+
+        public Paint getStrokePaint(){
+            return  strokePaint;
         }
 
         public int getDirection(){
@@ -55,6 +86,21 @@ public class Draw extends View {
 
         public int getSpeed(){
             return speed;
+        }
+
+        private int getMatColor(String typeColor)
+        {
+            int returnColor = Color.BLACK;
+            int arrayId = mContext.getResources().getIdentifier("mdcolor_" + typeColor, "array", mContext.getApplicationContext().getPackageName());
+
+            if (arrayId != 0)
+            {
+                TypedArray colors = mContext.getResources().obtainTypedArray(arrayId);
+                int index = (int) (Math.random() * colors.length());
+                returnColor = colors.getColor(index, Color.BLACK);
+                colors.recycle();
+            }
+            return returnColor;
         }
 
         @Override
@@ -86,16 +132,18 @@ public class Draw extends View {
     private void init(final Context ct) {
         // Generate bitmap used for background
         //mBitmap = BitmapFactory.decodeResource(ct.getResources(), R.drawable.abc_ic_menu_cut_mtrl_alpha);
-        mCirclePaint = new Paint();
-        mCirclePaint.setColor(Color.argb(100,50,205,50));
-        mCirclePaint.setStrokeWidth(40);
-        mCirclePaint.setStyle(Paint.Style.FILL);
-        mCirclePaint.setMaskFilter(new BlurMaskFilter(150, BlurMaskFilter.Blur.INNER));
+        appContext = ct;
 
-        strokePaint = new Paint();
-        strokePaint.setColor(Color.argb(100,0,100,0));
-        strokePaint.setStyle(Paint.Style.STROKE);
-        strokePaint.setStrokeWidth(3);
+//        mCirclePaint = new Paint();
+//        mCirclePaint.setColor(Color.argb(100,50,205,50));
+//        mCirclePaint.setStrokeWidth(40);
+//        mCirclePaint.setStyle(Paint.Style.FILL);
+//        mCirclePaint.setMaskFilter(new BlurMaskFilter(150, BlurMaskFilter.Blur.INNER));
+//
+//        strokePaint = new Paint();
+//        strokePaint.setColor(Color.argb(100,0,100,0));
+//        strokePaint.setStyle(Paint.Style.STROKE);
+//        strokePaint.setStrokeWidth(3);
 
         Display display = ((Activity)ct).getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -116,32 +164,32 @@ public class Draw extends View {
                 }else{
                     circle.centerX = circle.centerX - circle.getSpeed();
                 }
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getCirclePaint());
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getStrokePaint());
             }else if(circle.getDirection() == 1){
                 if(circle.centerX - circle.radius > screenX){
                     circle.centerX = 0;
                 }else{
                     circle.centerX= circle.centerX + circle.getSpeed();
                 }
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getCirclePaint());
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getStrokePaint());
             }else if(circle.getDirection() == 2){
                 if(circle.centerY - circle.radius > screenY){
                     circle.centerY = 0;
                 }else{
                     circle.centerY = circle.centerY + circle.getSpeed();
                 }
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getCirclePaint());
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getStrokePaint());
             }else{ //3
                 if(circle.centerY + circle.radius < 0){
                     circle.centerY = screenY;
                 }else{
                     circle.centerY = circle.centerY - circle.getSpeed();
                 }
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
-                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getCirclePaint());
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, circle.getStrokePaint());
             }
         }
     }
@@ -240,7 +288,7 @@ public class Draw extends View {
         CircleArea touchedCircle = getTouchedCircle(xTouch, yTouch);
 
         if (null == touchedCircle) {
-            touchedCircle = new CircleArea(xTouch, yTouch, 40/*mRadiusGenerator.nextInt(RADIUS_LIMIT) + RADIUS_LIMIT*/);
+            touchedCircle = new CircleArea(xTouch, yTouch, 40, appContext/*mRadiusGenerator.nextInt(RADIUS_LIMIT) + RADIUS_LIMIT*/);
 
             if (mCircles.size() == CIRCLES_LIMIT) {
             }
