@@ -1,15 +1,20 @@
 package com.thexfactorlabs.dots;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.HashSet;
+import java.util.Random;
 
 /**
  * Created by Harry Anuszewski on 8/4/2017.
@@ -19,7 +24,10 @@ import java.util.HashSet;
 public class Draw extends View {
     private static final String TAG = "CirclesDrawingView";
     boolean flag = false;
-    /** Main bitmap */
+    int screenX;
+    int screenY;
+
+    /* Main bitmap */
     //private Bitmap mBitmap = null;
 
     //private Rect mMeasuredRect;
@@ -29,11 +37,19 @@ public class Draw extends View {
         int radius;
         int centerX;
         int centerY;
+        int direction = 0; //0 left, 1 right, 2 up, 3 down
 
         CircleArea(int centerX, int centerY, int radius) {
             this.radius = radius;
             this.centerX = centerX;
             this.centerY = centerY;
+
+            Random r = new Random();
+            direction = r.nextInt(4);
+        }
+
+        public int getDirection(){
+            return direction;
         }
 
         @Override
@@ -69,21 +85,59 @@ public class Draw extends View {
         mCirclePaint.setColor(Color.argb(100,50,205,50));
         mCirclePaint.setStrokeWidth(40);
         mCirclePaint.setStyle(Paint.Style.FILL);
+        mCirclePaint.setMaskFilter(new BlurMaskFilter(150, BlurMaskFilter.Blur.INNER));
 
         strokePaint = new Paint();
         strokePaint.setColor(Color.argb(100,0,100,0));
         strokePaint.setStyle(Paint.Style.STROKE);
         strokePaint.setStrokeWidth(3);
+
+        Display display = ((Activity)ct).getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        screenX = size.x;
+        screenY = size.y;
     }
 
     @Override
     public void onDraw(final Canvas canv) {
         // background bitmap to cover all area
         //canv.drawBitmap(mBitmap, null, mMeasuredRect, null);
-
+        invalidate();
         for (CircleArea circle : mCircles) {
-            canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
-            canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+            if(circle.getDirection() == 0) {
+                if(circle.centerX -1 < 0){
+                    circle.centerX = screenX;
+                }else{
+                    circle.centerX = circle.centerX-5;
+                }
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+            }else if(circle.getDirection() == 1){
+                if(circle.centerX + 1 > screenX){
+                    circle.centerX = 0;
+                }else{
+                    circle.centerX= circle.centerX + 5;
+                }
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+            }else if(circle.getDirection() == 2){
+                if(circle.centerY + 1 > screenY){
+                    circle.centerY = 0;
+                }else{
+                    circle.centerY = circle.centerY + 5;
+                }
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+            }else{ //3
+                if(circle.centerY - 1 < 0){
+                    circle.centerY = screenY;
+                }else{
+                    circle.centerY = circle.centerY - 5;
+                }
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
+                canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
+            }
         }
     }
 
@@ -115,24 +169,24 @@ public class Draw extends View {
                 handled = true;
                 break;
             case MotionEvent.ACTION_MOVE:
-                final int pointerCount = event.getPointerCount();
-
-                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
-                    // Some pointer has moved, search it by pointer id
-                    pointerId = event.getPointerId(actionIndex);
-
-                    xTouch = (int) event.getX(actionIndex);
-                    yTouch = (int) event.getY(actionIndex);
-
-                    touchedCircle = mCirclePointer.get(pointerId);
-
-                    if (null != touchedCircle) {
-                        touchedCircle.centerX = xTouch;
-                        touchedCircle.centerY = yTouch;
-                    }
-                }
-                invalidate();
-                handled = true;
+//                final int pointerCount = event.getPointerCount();
+//
+//                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
+//                    // Some pointer has moved, search it by pointer id
+//                    pointerId = event.getPointerId(actionIndex);
+//
+//                    xTouch = (int) event.getX(actionIndex);
+//                    yTouch = (int) event.getY(actionIndex);
+//
+//                    touchedCircle = mCirclePointer.get(pointerId);
+//
+//                    if (null != touchedCircle) {
+//                        touchedCircle.centerX = xTouch;
+//                        touchedCircle.centerY = yTouch;
+//                    }
+//                }
+//                invalidate();
+//                handled = true;
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -181,7 +235,7 @@ public class Draw extends View {
         CircleArea touchedCircle = getTouchedCircle(xTouch, yTouch);
 
         if (null == touchedCircle) {
-            touchedCircle = new CircleArea(xTouch, yTouch, 80/*mRadiusGenerator.nextInt(RADIUS_LIMIT) + RADIUS_LIMIT*/);
+            touchedCircle = new CircleArea(xTouch, yTouch, 40/*mRadiusGenerator.nextInt(RADIUS_LIMIT) + RADIUS_LIMIT*/);
 
             if (mCircles.size() == CIRCLES_LIMIT) {
             }
