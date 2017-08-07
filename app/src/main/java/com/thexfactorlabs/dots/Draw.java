@@ -38,6 +38,7 @@ public class Draw extends View {
         int centerX;
         int centerY;
         int direction = 0; //0 left, 1 right, 2 up, 3 down
+        int speed = 8;
 
         CircleArea(int centerX, int centerY, int radius) {
             this.radius = radius;
@@ -50,6 +51,10 @@ public class Draw extends View {
 
         public int getDirection(){
             return direction;
+        }
+
+        public int getSpeed(){
+            return speed;
         }
 
         @Override
@@ -106,34 +111,34 @@ public class Draw extends View {
         invalidate();
         for (CircleArea circle : mCircles) {
             if(circle.getDirection() == 0) {
-                if(circle.centerX -1 < 0){
+                if(circle.centerX + circle.radius < 0){
                     circle.centerX = screenX;
                 }else{
-                    circle.centerX = circle.centerX-5;
+                    circle.centerX = circle.centerX - circle.getSpeed();
                 }
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
             }else if(circle.getDirection() == 1){
-                if(circle.centerX + 1 > screenX){
+                if(circle.centerX - circle.radius > screenX){
                     circle.centerX = 0;
                 }else{
-                    circle.centerX= circle.centerX + 5;
+                    circle.centerX= circle.centerX + circle.getSpeed();
                 }
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
             }else if(circle.getDirection() == 2){
-                if(circle.centerY + 1 > screenY){
+                if(circle.centerY - circle.radius > screenY){
                     circle.centerY = 0;
                 }else{
-                    circle.centerY = circle.centerY + 5;
+                    circle.centerY = circle.centerY + circle.getSpeed();
                 }
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
             }else{ //3
-                if(circle.centerY - 1 < 0){
+                if(circle.centerY + circle.radius < 0){
                     circle.centerY = screenY;
                 }else{
-                    circle.centerY = circle.centerY - 5;
+                    circle.centerY = circle.centerY - circle.getSpeed();
                 }
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
                 canv.drawCircle(circle.centerX, circle.centerY, circle.radius, strokePaint);
